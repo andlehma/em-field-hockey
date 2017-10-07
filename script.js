@@ -115,7 +115,27 @@ var puck = {
     x: 100,
     y: iH/2,
     dx: 0,
-    dy: 0
+    dy: 0,
+
+    update: function(){
+        if (gamestate == 1){
+            puck.x += puck.dx;
+            puck.y += puck.dy;
+        }
+        if (puck.x < 0 || puck.y < 0 || puck.x > iW || puck.y > iH){
+            gamestate = 0;
+            initpuck();
+        }
+        this.draw();
+    },
+
+    draw: function(){
+        ctx.beginPath();
+        ctx.arc(puck.x, puck.y, 5, 0, Math.PI * 2, false);
+        ctx.fillStyle = "#000000";
+        ctx.fill();
+        ctx.closePath();
+    }
 }
 
 var goal = {
@@ -123,13 +143,26 @@ var goal = {
     y: iH/2,
     w: 10,
     h: 100,
+
+    draw: function(){
+        ctx.fillStyle = "green";
+        ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+    }
 }
 
 var pool = {
     x:iW - 150,
     y:0,
     w:150,
-    h:150
+    h:150,
+
+    draw: function(){
+        ctx.beginPath();
+        ctx.lineWidth="3";
+        ctx.strokeStyle="#000000";
+        ctx.rect(iW - 150,0,150,150);
+        ctx.stroke();
+    }
 }
 
 var startImg = new Image();
@@ -138,7 +171,11 @@ var startButton = {
     x: 100,
     y: iH - 55,
     w: 100,
-    h: 50
+    h: 50,
+
+    draw: function(){
+        ctx.drawImage(startImg, startButton.x, startButton.y);
+    }
 }
 
 var stopImg = new Image();
@@ -147,7 +184,11 @@ var stopButton = {
     x: 205,
     y: iH - 55,
     w: 100,
-    h: 50
+    h: 50,
+
+    draw: function(){
+        ctx.drawImage(stopImg, stopButton.x, stopButton.y);
+    }
 }
 
 var resetImg = new Image();
@@ -156,52 +197,14 @@ var resetButton = {
     x: 310,
     y: iH - 55,
     w: 100,
-    h: 50
+    h: 50,
+
+    draw: function(){
+        ctx.drawImage(resetImg, resetButton.x, resetButton.y);
+    }
 }
 
 var charges = [];
-
-function drawStatic(){
-    //puck
-    ctx.beginPath();
-    ctx.arc(puck.x, puck.y, 5, 0, Math.PI * 2, false);
-    ctx.fillStyle = "#000000";
-    ctx.fill();
-    ctx.closePath();
-
-    //goal
-    ctx.fillStyle = "green";
-    ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
-
-    //pool
-    ctx.beginPath();
-    ctx.lineWidth="3";
-    ctx.strokeStyle="#000000";
-    ctx.rect(iW - 150,0,150,150);
-    ctx.stroke();
-
-    //startButton
-    ctx.drawImage(startImg, startButton.x, startButton.y);
-
-    //stopButton
-    ctx.drawImage(stopImg, stopButton.x, stopButton.y);
-
-    //resetButton
-    ctx.drawImage(resetImg, resetButton.x, resetButton.y);
-}
-
-function updateStatic(){
-    if (gamestate == 1){
-        puck.x += puck.dx;
-        puck.y += puck.dy;
-    }
-    if (puck.x < 0 || puck.y < 0 || puck.x > iW || puck.y > iH){
-        gamestate = 0;
-        initpuck();
-    }
-
-    drawStatic();
-}
 
 function charge(x, y, ch) {
     this.x = x;
@@ -254,8 +257,12 @@ function animate() {
         charge.update();
     });
 
-    updateStatic();
-    drawStatic();
+    puck.update();
+    goal.draw();
+    pool.draw();
+    startButton.draw();
+    stopButton.draw();
+    resetButton.draw();
 
     function randomInt(min,max){
         return Math.floor(Math.random()*(max-min+1)+min);
