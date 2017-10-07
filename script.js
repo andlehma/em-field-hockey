@@ -7,13 +7,7 @@ canvas.height = iH;
 var dragIndex;
 var dragging;
 canvas.addEventListener("mousedown", mouseDownListener, false);
-//gamestate 0 = paused, 1 = going
-var gamestate = 0;
-
-const mouse = {
-    x: innerWidth / 2,
-    y: innerHeight / 2
-};
+var gamestate = 0; //gamestate 0 = paused, 1 = going
 
 addEventListener('resize', () => {
     canvas.width = innerWidth;
@@ -29,23 +23,25 @@ function mouseDownListener(evt) {
     mouseX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
     mouseY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
 
-    if (mouseX > 100 && mouseX < 200 && mouseY > iH - 55){
+    if (mouseX > startButton.x && mouseX < startButton.x + startButton.w && mouseY > startButton.y && mouseY < startButton.y + startButton.h){
         gamestate = 1;
     }
 
-    if (mouseX > 210 && mouseX < 310 && mouseY > iH - 55){
+    if (mouseX > stopButton.x && mouseX < stopButton.x + stopButton.w && mouseY > stopButton.y && mouseY < stopButton.y + stopButton.h){
         gamestate = 0;
     }
 
-    if (mouseX > 320 && mouseX < 430 && mouseY > iH - 55){
+    if (mouseX > resetButton.x && mouseX < resetButton.x + resetButton.w && mouseY > resetButton.y && mouseY < resetButton.y + resetButton.h){
         gamestate = 0;
         init();
     }
 
     //find which shape was clicked
     for (i=0; i < charges.length; i++) {
-        if	(hitTest(charges[i], mouseX, mouseY)) {
+        if (hitTest(charges[i], mouseX, mouseY)) {
+            if (gamestate == 0){
             dragging = true;
+            }
             if (i > highestIndex) {
                 //We will pay attention to the point on the object where the mouse is "holding" the object:
                 dragHoldX = mouseX - charges[i].x;
@@ -122,47 +118,96 @@ var puck = {
     dy: 0
 }
 
-function drawpuck(){
+var goal = {
+    x: iW - 100,
+    y: iH/2,
+    w: 10,
+    h: 100,
+}
+
+var pool = {
+    x:iW - 150,
+    y:0,
+    w:150,
+    h:150
+}
+
+var startImg = new Image();
+startImg.src = 'images/start.png';
+var startButton = {
+    x: 100,
+    y: iH - 55,
+    w: 100,
+    h: 50
+}
+
+var stopImg = new Image();
+stopImg.src = 'images/stop.png';
+var stopButton = {
+    x: 205,
+    y: iH - 55,
+    w: 100,
+    h: 50
+}
+
+var resetImg = new Image();
+resetImg.src = 'images/reset.png';
+var resetButton = {
+    x: 310,
+    y: iH - 55,
+    w: 100,
+    h: 50
+}
+
+var charges = [];
+
+function drawStatic(){
+    //puck
     ctx.beginPath();
     ctx.arc(puck.x, puck.y, 5, 0, Math.PI * 2, false);
     ctx.fillStyle = "#000000";
     ctx.fill();
     ctx.closePath();
+
+    //goal
+    ctx.fillStyle = "green";
+    ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
+
+    //pool
+    ctx.beginPath();
+    ctx.lineWidth="3";
+    ctx.strokeStyle="#000000";
+    ctx.rect(iW - 150,0,150,150);
+    ctx.stroke();
+
+    //startButton
+    ctx.drawImage(startImg, startButton.x, startButton.y);
+
+    //stopButton
+    ctx.drawImage(stopImg, stopButton.x, stopButton.y);
+
+    //resetButton
+    ctx.drawImage(resetImg, resetButton.x, resetButton.y);
 }
 
-function updatepuck(dx, dy){
+function updateStatic(){
     if (gamestate == 1){
         puck.x += puck.dx;
         puck.y += puck.dy;
     }
-    drawpuck();
     if (puck.x < 0 || puck.y < 0 || puck.x > iW || puck.y > iH){
         gamestate = 0;
         initpuck();
     }
+
+    drawStatic();
 }
-
-var goal = {
-    x: iW - 100,
-    y: iH/2
-}
-
-function drawgoal(){
-    ctx.fillStyle = "green";
-    ctx.fillRect(goal.x, goal.y, 10, 50);
-}
-
-
 
 function charge(x, y, ch) {
     this.x = x;
     this.y = y;
     this.fakecharge = ch;
-    if (this.x > iW - 150 && this.y < 150){
-        this.charge = 0;
-    }else{
-        this.charge = this.fakecharge; //nanocoulombs
-    }
+
     this.radius = 5;
     if (this.fakecharge < 0){
         this.color = "#0000FF";
@@ -180,6 +225,11 @@ function charge(x, y, ch) {
     };
 
     this.update = function(){
+        if (this.x > pool.x && this.y < pool.h){
+            this.charge = 0;
+        }else{
+            this.charge = this.fakecharge; //nanocoulombs
+        }
         this.draw();
         this.a = puck.x - this.x;
         this.b = puck.y - this.y;
@@ -187,13 +237,14 @@ function charge(x, y, ch) {
         this.xAngle = Math.asin(this.a/this.c);
         this.yAngle = Math.asin(this.b/this.c);
         if (gamestate == 1){
-            puck.dx += Math.sin(this.xAngle)*((8.987*ch)/(this.c*this.c));
-            puck.dy += Math.sin(this.yAngle)*((8.987*ch)/(this.c*this.c));
+            puck.dx += Math.sin(this.xAngle)*((8.987*this.charge)/(this.c*this.c));
+            puck.dy += Math.sin(this.yAngle)*((8.987*this.charge)/(this.c*this.c));
+        }
+        if (this.c <= this.radius){
+            gamestate = 0;
         }
     };
 }
-
-var charges = [];
 
 function animate() {
     requestAnimationFrame(animate);
@@ -203,8 +254,8 @@ function animate() {
         charge.update();
     });
 
-    updatepuck();
-    drawgoal();
+    updateStatic();
+    drawStatic();
 
     function randomInt(min,max){
         return Math.floor(Math.random()*(max-min+1)+min);
@@ -214,36 +265,11 @@ function animate() {
         return Math.random()*(max-min+1)+min;
     }
 
-    ctx.beginPath();
-    ctx.lineWidth="3";
-    ctx.strokeStyle="#000000";
-    ctx.rect(iW - 150,0,150,150);
-    ctx.stroke();
-
-    ctx.fillStyle = "blue";
-    ctx.fillRect(100, iH - 55, 100, 50);
-    ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
-    ctx.fillText("Begin",110,iH - 25);
-
-    ctx.fillStyle = "red";
-    ctx.fillRect(205, iH - 55, 100, 50);
-    ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
-    ctx.fillText("Stop",220,iH - 25);
-
-    ctx.fillStyle = "black";
-    ctx.fillRect(310, iH - 55, 100, 50);
-    ctx.fillStyle = "white";
-    ctx.font = "30px Arial";
-    ctx.fillText("Reset",320,iH - 25);
-
-    if (puck.x > goal.x && puck.x < goal.x + 10 && puck.y > goal.y && puck.y < goal.y + 50){
+    if (puck.x > goal.x && puck.x < goal.x + goal.w && puck.y > goal.y && puck.y < goal.y + goal.h){
         gamestate = 0;
         ctx.fillStyle = "black";
         ctx.font = "50px Arial";
         ctx.fillText("SUCCESS", iW/2, iH/2);
-        console.log('success');
     }
 }
 
@@ -254,9 +280,9 @@ function init(){
     puck.dy = 0;
 
     charges = [];
-    charges.push(new charge(iW - 100, 50, 50));
-    charges.push(new charge(iW - 125, 50, 50));
-    charges.push(new charge(iW - 75, 50, -50));
+    charges.push(new charge(iW - 100, 50, 250));
+    charges.push(new charge(iW - 125, 50, 250));
+    charges.push(new charge(iW - 75, 50, -250));
 }
 
 function initpuck(){
