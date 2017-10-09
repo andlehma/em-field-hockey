@@ -6,8 +6,6 @@ canvas.width = iW;
 canvas.height = iH;
 var dragIndex;
 var dragging;
-var dragHoldX;
-var dragHoldY;
 canvas.addEventListener("mousedown", mouseDownListener, false);
 var gamestate = 0; //gamestate 0 = paused, 1 = going
 var counter = 5;
@@ -16,9 +14,6 @@ var yArrowForce;
 var arrows = [];
 var boolArrows = 0;
 var walls = [];
-var mouseX;
-var mouseY;
-var charges = [];
 
 function arrow(fromx, fromy, tox, toy){
     this.angle = Math.atan2(toy-fromy,tox-fromx);
@@ -26,7 +21,6 @@ function arrow(fromx, fromy, tox, toy){
     this.arrowx = tox - (10 * Math.cos(this.angle));
     this.arrowy = toy - (10 * Math.sin(this.angle));
     this.draw = function(){
-        ctx.strokeStyle = "#000000";
         if (Math.sqrt((fromx - tox) * (fromx - tox) + (fromy - toy) * (fromy - toy)) > 10){
             ctx.fillStyle = "#000000";
             ctx.fillRect(fromx - 2, fromy - 2, 4, 4);
@@ -37,6 +31,7 @@ function arrow(fromx, fromy, tox, toy){
         ctx.lineTo(tox, toy);
         ctx.stroke();
         ctx.beginPath();
+        ctx.lineWidth ="1";
         ctx.moveTo(this.arrowx, this.arrowy);
         ctx.lineTo(this.arrowx + (5 * Math.cos(this.per)), this.arrowy + (5 * Math.sin(this.per)));
         ctx.lineTo(tox, toy);
@@ -46,12 +41,12 @@ function arrow(fromx, fromy, tox, toy){
         ctx.fillStyle = "#000000";
         ctx.stroke();
         ctx.fill();
-    };
+    }
 }
 
 addEventListener('resize', () => {
-    canvas.width = iW;
-    canvas.height = iH;
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
 });
 
 function mouseDownListener(evt) {
@@ -188,7 +183,7 @@ var puck = {
         ctx.fill();
         ctx.closePath();
     }
-};
+}
 
 var goal = {
     x: iW - 100,
@@ -200,7 +195,7 @@ var goal = {
         ctx.fillStyle = 'rgba(0, 255, 50, .5)';
         ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
     }
-};
+}
 
 var pool = {
     x:iW - 150,
@@ -215,7 +210,7 @@ var pool = {
         ctx.rect(iW - 150,0,150,150);
         ctx.stroke();
     }
-};
+}
 
 var startImg = new Image();
 startImg.src = 'images/start.png';
@@ -228,7 +223,7 @@ var startButton = {
     draw: function(){
         ctx.drawImage(startImg, startButton.x, startButton.y);
     }
-};
+}
 
 var stopImg = new Image();
 stopImg.src = 'images/stop.png';
@@ -241,7 +236,7 @@ var stopButton = {
     draw: function(){
         ctx.drawImage(stopImg, stopButton.x, stopButton.y);
     }
-};
+}
 
 var resetImg = new Image();
 resetImg.src = 'images/reset.png';
@@ -254,7 +249,7 @@ var resetButton = {
     draw: function(){
         ctx.drawImage(resetImg, resetButton.x, resetButton.y);
     }
-};
+}
 
 var arrowsDarkImg = new Image();
 arrowsDarkImg.src = 'images/arrows-dark.png';
@@ -273,7 +268,7 @@ var arrowsButton = {
             ctx.drawImage(arrowsLightImg, arrowsButton.x, arrowsButton.y);
         }
     }
-};
+}
 
 function wall(x, y, width, height){
     this.x = x;
@@ -284,7 +279,7 @@ function wall(x, y, width, height){
     this.draw = function(){
         ctx.fillStyle = "#000000";
         ctx.fillRect(this.x, this.y, this.width, this.height);
-    };
+    }
 }
 
 
@@ -377,12 +372,12 @@ function animate() {
 
     if (puck.x > goal.x && puck.x < goal.x + goal.w && puck.y > goal.y && puck.y < goal.y + goal.h){
         gamestate = 0;
-        ctx.textAlign="center";
         ctx.fillStyle = "black";
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = "10";
+        ctx.textAlign="center";
         ctx.font = "bold 90px Arial";
-        ctx.strokeText("SUCCESS", iW/2, iH/2);
+        ctx.fillText("SUCCESS", iW/2, iH/2);
+        ctx.font = "bold 92px Arial";
+        ctx.fillStyle = "white";
         ctx.fillText("SUCCESS", iW/2, iH/2);
     }
 }
