@@ -1,5 +1,3 @@
-walls.push(new wall(iW/2, iH/2 - 100, 10, 200));
-
 function initpuck(){
     puck.x = 100;
     puck.y = iH / 2;
@@ -18,5 +16,3 @@ var goal = {
         ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
     }
 };
-
-animate();
