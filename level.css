@@ -10,11 +10,14 @@ canvas {
     position:fixed;
 }
 
-a {
+p {
     position:fixed;
     bottom: 0px;
     right: 0px;
-    text-decoration: none;
     font-family: sans-serif;
     margin: 3px;
+}
+
+a {
+    text-decoration: none;
 }
