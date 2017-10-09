@@ -1,25 +1,26 @@
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
-var iW = window.innerWidth;
-var iH = window.innerHeight;
+var iW = 600;
+var iH = 600;
 canvas.width = iW;
 canvas.height = iH;
 var dragIndex;
 var dragging;
 var dragHoldX;
 var dragHoldY;
-canvas.addEventListener("mousedown", mouseDownListener, false);
+var mouseX;
+var mouseY;
 var gamestate = 0; //gamestate 0 = paused, 1 = going
 var counter = 5;
 var xArrowForce;
 var yArrowForce;
-var arrows = [];
 var boolArrows = 0;
-var walls = [];
-var mouseX;
-var mouseY;
 var charges = [];
+var arrows = [];
+var walls = []; //add walls in individual level scripts
+canvas.addEventListener("mousedown", mouseDownListener, false);
 
+//force vectors
 function arrow(fromx, fromy, tox, toy){
     this.angle = Math.atan2(toy-fromy,tox-fromx);
     this.per = Math.atan2(-1 * (tox-fromx), toy - fromy);
@@ -49,20 +50,15 @@ function arrow(fromx, fromy, tox, toy){
     };
 }
 
-addEventListener('resize', () => {
-    canvas.width = iW;
-    canvas.height = iH;
-});
-
+//dragging code from http://rectangleworld.com/blog/archives/15
 function mouseDownListener(evt) {
     var i;
     var highestIndex = -1;
-
-    //getting mouse position correctly, being mindful of resizing that may have occured in the browser:
     var bRect = canvas.getBoundingClientRect();
     mouseX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
     mouseY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
 
+    //handling for button clicks
     if (mouseX > startButton.x && mouseX < startButton.x + startButton.w && mouseY > startButton.y && mouseY < startButton.y + startButton.h){
         initpuck();
         gamestate = 1;
@@ -88,14 +84,12 @@ function mouseDownListener(evt) {
         }
     }
 
-    //find which shape was clicked
     for (i=0; i < charges.length; i++) {
         if (hitTest(charges[i], mouseX, mouseY)) {
             if (gamestate == 0){
                 dragging = true;
             }
             if (i > highestIndex) {
-                //We will pay attention to the point on the object where the mouse is "holding" the object:
                 dragHoldX = mouseX - charges[i].x;
                 dragHoldY = mouseY - charges[i].y;
                 highestIndex = i;
@@ -110,10 +104,9 @@ function mouseDownListener(evt) {
     canvas.removeEventListener("mousedown", mouseDownListener, false);
     window.addEventListener("mouseup", mouseUpListener, false);
 
-    //code below prevents the mouse down from having an effect on the main browser window:
     if (evt.preventDefault) {
         evt.preventDefault();
-    } //standard
+    }
     else if (evt.returnValue) {
         evt.returnValue = false;
     } //older IE
@@ -137,12 +130,10 @@ function mouseMoveListener(evt) {
     var maxX = canvas.width - shapeRad;
     var minY = shapeRad;
     var maxY = canvas.height - shapeRad;
-    //getting mouse position correctly
     var bRect = canvas.getBoundingClientRect();
     mouseX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
     mouseY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
 
-    //clamp x and y positions to prevent object from dragging outside of canvas
     posX = mouseX - dragHoldX;
     posX = (posX < minX) ? minX : ((posX > maxX) ? maxX : posX);
     posY = mouseY - dragHoldY;
@@ -159,7 +150,6 @@ function hitTest(shape,mx,my) {
     dx = mx - shape.x;
     dy = my - shape.y;
 
-    //a "hit" will be registered if the distance away from the center is less than the radius of the circular object
     return (dx*dx + dy*dy < shape.radius*shape.radius);
 }
 
@@ -202,6 +192,7 @@ var goal = {
     }
 };
 
+//where the charges start
 var pool = {
     x:iW - 150,
     y:0,
@@ -218,7 +209,7 @@ var pool = {
 };
 
 var startImg = new Image();
-startImg.src = 'images/start.png';
+startImg.src = '../images/start.png';
 var startButton = {
     x: 100,
     y: iH - 55,
@@ -231,7 +222,7 @@ var startButton = {
 };
 
 var stopImg = new Image();
-stopImg.src = 'images/stop.png';
+stopImg.src = '../images/stop.png';
 var stopButton = {
     x: 205,
     y: iH - 55,
@@ -244,7 +235,7 @@ var stopButton = {
 };
 
 var resetImg = new Image();
-resetImg.src = 'images/reset.png';
+resetImg.src = '../images/reset.png';
 var resetButton = {
     x: 310,
     y: iH - 55,
@@ -257,9 +248,9 @@ var resetButton = {
 };
 
 var arrowsDarkImg = new Image();
-arrowsDarkImg.src = 'images/arrows-dark.png';
+arrowsDarkImg.src = '../images/arrows-dark.png';
 var arrowsLightImg = new Image();
-arrowsLightImg.src = 'images/arrows-light.png';
+arrowsLightImg.src = '../images/arrows-light.png';
 var arrowsButton = {
     x: 415,
     y: iH - 55,
@@ -291,10 +282,10 @@ function wall(x, y, width, height){
 function charge(x, y, ch) {
     this.x = x;
     this.y = y;
-    this.fakecharge = ch;
+    this.tempcharge = ch;
 
     this.radius = 13;
-    if (this.fakecharge < 0){
+    if (this.tempcharge < 0){
         this.color = "#0000FF";
     }else{
         this.color = "#FF0000";
@@ -313,15 +304,17 @@ function charge(x, y, ch) {
         if (this.x > pool.x && this.y < pool.h){
             this.charge = 0;
         }else{
-            this.charge = this.fakecharge; //nanocoulombs
+            this.charge = this.tempcharge; //nanocoulombs
         }
         this.draw();
+        //force on the puck
         this.a = puck.x - this.x;
         this.b = puck.y - this.y;
         this.c = Math.sqrt(this.a*this.a + this.b*this.b);
         this.xAngle = Math.asin(this.a/this.c);
         this.yAngle = Math.asin(this.b/this.c);
 
+        //end game if puck hits a charge
         if (this.c <= this.radius){
             gamestate = 0;
         }
@@ -332,6 +325,13 @@ function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    walls.forEach(wall => {
+        wall.draw();
+        if (puck.x > wall.x && puck.x < wall.x + wall.width && puck.y > wall.y && puck.y < wall.y + wall.height){
+            gamestate = 0;
+        }
+    });
+
     var xForce = 0;
     var yForce = 0;
 
@@ -339,13 +339,6 @@ function animate() {
         charge.update();
         xForce += Math.sin(charge.xAngle)*((8.987*charge.charge)/(charge.c*charge.c));
         yForce += Math.sin(charge.yAngle)*((8.987*charge.charge)/(charge.c*charge.c));
-    });
-
-    walls.forEach(wall => {
-        wall.draw();
-        if (puck.x > wall.x && puck.x < wall.x + wall.width && puck.y > wall.y && puck.y < wall.y + wall.height){
-            gamestate = 0;
-        }
     });
 
     if (boolArrows == 1){
@@ -360,6 +353,7 @@ function animate() {
     if (gamestate == 1){
         puck.dx += xForce;
         puck.dy += yForce;
+        //every 5 frames, add an arrow
         if (counter == 5){
             arrows.push(new arrow(puck.x, puck.y, puck.x + xArrowForce, puck.y + yArrowForce));
             counter = 0;
@@ -375,6 +369,7 @@ function animate() {
     resetButton.draw();
     arrowsButton.draw();
 
+    //win condition
     if (puck.x > goal.x && puck.x < goal.x + goal.w && puck.y > goal.y && puck.y < goal.y + goal.h){
         gamestate = 0;
         ctx.textAlign="center";
@@ -387,6 +382,7 @@ function animate() {
     }
 }
 
+//reset only the puck
 function initpuck(){
     puck.x = 100;
     puck.y = iH/2;

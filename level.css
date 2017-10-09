@@ -6,8 +6,16 @@ body {
     margin: 0px;
 }
 
+#container {
+    width: 600px;
+    margin: auto;
+    position: relative;
+    top: 30px;
+}
+
 canvas {
     position:fixed;
+    border: 1px solid black;
 }
 
 p {
