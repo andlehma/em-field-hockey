@@ -370,14 +370,6 @@ function animate() {
     }
 }
 
-function initcharges(){
-    charges = [];
-    charges.push(new charge(iW - 100, 50, 100));
-    charges.push(new charge(iW - 125, 50, 100));
-    charges.push(new charge(iW - 75, 50, -100));
-    charges.push(new charge(iW - 50, 50, -100));
-}
-
 function init(){
     initpuck();
     initcharges();

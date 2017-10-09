@@ -16,3 +16,11 @@ var goal = {
         ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
     }
 };
+
+function initcharges(){
+    charges = [];
+    charges.push(new charge(iW - 100, 50, 100));
+    charges.push(new charge(iW - 125, 50, 100));
+    charges.push(new charge(iW - 75, 50, -100));
+    charges.push(new charge(iW - 50, 50, -100));
+}
