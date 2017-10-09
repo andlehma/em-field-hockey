@@ -8,6 +8,40 @@ var dragIndex;
 var dragging;
 canvas.addEventListener("mousedown", mouseDownListener, false);
 var gamestate = 0; //gamestate 0 = paused, 1 = going
+var counter = 5;
+var xArrowForce;
+var yArrowForce;
+var arrows = [];
+var boolArrows = 0;
+
+function arrow(fromx, fromy, tox, toy){
+    this.angle = Math.atan2(toy-fromy,tox-fromx);
+    this.per = Math.atan2(-1 * (tox-fromx), toy - fromy);
+    this.arrowx = tox - (10 * Math.cos(this.angle));
+    this.arrowy = toy - (10 * Math.sin(this.angle));
+    this.draw = function(){
+        if (Math.sqrt((fromx - tox) * (fromx - tox) + (fromy - toy) * (fromy - toy)) > 10){
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(fromx - 2, fromy - 2, 4, 4);
+        }
+        ctx.lineWidth="1";
+        ctx.beginPath();
+        ctx.moveTo(fromx, fromy);
+        ctx.lineTo(tox, toy);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.lineWidth ="1";
+        ctx.moveTo(this.arrowx, this.arrowy);
+        ctx.lineTo(this.arrowx + (5 * Math.cos(this.per)), this.arrowy + (5 * Math.sin(this.per)));
+        ctx.lineTo(tox, toy);
+        ctx.moveTo(this.arrowx, this.arrowy);
+        ctx.lineTo(this.arrowx - (5 * Math.cos(this.per)), this.arrowy - (5 * Math.sin(this.per)));
+        ctx.lineTo(tox, toy);
+        ctx.fillStyle = "#000000";
+        ctx.stroke();
+        ctx.fill();
+    }
+}
 
 addEventListener('resize', () => {
     canvas.width = innerWidth;
@@ -24,23 +58,35 @@ function mouseDownListener(evt) {
     mouseY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
 
     if (mouseX > startButton.x && mouseX < startButton.x + startButton.w && mouseY > startButton.y && mouseY < startButton.y + startButton.h){
+        initpuck();
         gamestate = 1;
+        arrows = [];
     }
 
     if (mouseX > stopButton.x && mouseX < stopButton.x + stopButton.w && mouseY > stopButton.y && mouseY < stopButton.y + stopButton.h){
         gamestate = 0;
+        initpuck();
     }
 
     if (mouseX > resetButton.x && mouseX < resetButton.x + resetButton.w && mouseY > resetButton.y && mouseY < resetButton.y + resetButton.h){
         gamestate = 0;
+        arrows = [];
         init();
+    }
+
+    if (mouseX > arrowsButton.x && mouseX < arrowsButton.x + arrowsButton.w && mouseY > arrowsButton.y && mouseY < arrowsButton.y + arrowsButton.h){
+        if (boolArrows == 1){
+            boolArrows = 0;
+        }else{
+            boolArrows = 1;
+        }
     }
 
     //find which shape was clicked
     for (i=0; i < charges.length; i++) {
         if (hitTest(charges[i], mouseX, mouseY)) {
             if (gamestate == 0){
-            dragging = true;
+                dragging = true;
             }
             if (i > highestIndex) {
                 //We will pay attention to the point on the object where the mouse is "holding" the object:
@@ -131,7 +177,7 @@ var puck = {
 
     draw: function(){
         ctx.beginPath();
-        ctx.arc(puck.x, puck.y, 5, 0, Math.PI * 2, false);
+        ctx.arc(puck.x, puck.y, 13, 0, Math.PI * 2, false);
         ctx.fillStyle = "#000000";
         ctx.fill();
         ctx.closePath();
@@ -140,12 +186,12 @@ var puck = {
 
 var goal = {
     x: iW - 100,
-    y: iH/2,
-    w: 10,
+    y: (iH/2) - (10/2),
+    w: 50,
     h: 100,
 
     draw: function(){
-        ctx.fillStyle = "green";
+        ctx.fillStyle = 'rgba(0, 255, 50, .5)';
         ctx.fillRect(goal.x, goal.y, goal.w, goal.h);
     }
 }
@@ -204,14 +250,31 @@ var resetButton = {
     }
 }
 
-var charges = [];
+var arrowsDarkImg = new Image();
+arrowsDarkImg.src = 'images/arrows-dark.png';
+var arrowsLightImg = new Image();
+arrowsLightImg.src = 'images/arrows-light.png';
+var arrowsButton = {
+    x: 415,
+    y: iH - 55,
+    w: 100,
+    h: 50,
+
+    draw: function(){
+        if (boolArrows == 1){
+            ctx.drawImage(arrowsDarkImg, arrowsButton.x, arrowsButton.y);
+        }else{
+            ctx.drawImage(arrowsLightImg, arrowsButton.x, arrowsButton.y);
+        }
+    }
+}
 
 function charge(x, y, ch) {
     this.x = x;
     this.y = y;
     this.fakecharge = ch;
 
-    this.radius = 5;
+    this.radius = 13;
     if (this.fakecharge < 0){
         this.color = "#0000FF";
     }else{
@@ -239,10 +302,7 @@ function charge(x, y, ch) {
         this.c = Math.sqrt(this.a*this.a + this.b*this.b);
         this.xAngle = Math.asin(this.a/this.c);
         this.yAngle = Math.asin(this.b/this.c);
-        if (gamestate == 1){
-            puck.dx += Math.sin(this.xAngle)*((8.987*this.charge)/(this.c*this.c));
-            puck.dy += Math.sin(this.yAngle)*((8.987*this.charge)/(this.c*this.c));
-        }
+
         if (this.c <= this.radius){
             gamestate = 0;
         }
@@ -253,9 +313,33 @@ function animate() {
     requestAnimationFrame(animate);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    var xForce = 0;
+    var yForce = 0;
+
     charges.forEach(charge => {
         charge.update();
+        xForce += Math.sin(charge.xAngle)*((8.987*charge.charge)/(charge.c*charge.c));
+        yForce += Math.sin(charge.yAngle)*((8.987*charge.charge)/(charge.c*charge.c));
     });
+
+    if (boolArrows == 1){
+        arrows.forEach(arrow => {
+            arrow.draw();
+        });
+    }
+
+    xArrowForce = 300 * xForce;
+    yArrowForce = 300 * yForce;
+
+    if (gamestate == 1){
+        puck.dx += xForce;
+        puck.dy += yForce;
+        if (counter == 5){
+            arrows.push(new arrow(puck.x, puck.y, puck.x + xArrowForce, puck.y + yArrowForce));
+            counter = 0;
+        }
+        counter ++;
+    }
 
     puck.update();
     goal.draw();
@@ -263,33 +347,15 @@ function animate() {
     startButton.draw();
     stopButton.draw();
     resetButton.draw();
-
-    function randomInt(min,max){
-        return Math.floor(Math.random()*(max-min+1)+min);
-    }
-
-    function randomFloat(min,max){
-        return Math.random()*(max-min+1)+min;
-    }
+    arrowsButton.draw();
 
     if (puck.x > goal.x && puck.x < goal.x + goal.w && puck.y > goal.y && puck.y < goal.y + goal.h){
         gamestate = 0;
         ctx.fillStyle = "black";
-        ctx.font = "50px Arial";
+        ctx.textAlign="center";
+        ctx.font = "bold 90px Arial";
         ctx.fillText("SUCCESS", iW/2, iH/2);
     }
-}
-
-function init(){
-    puck.x = 100;
-    puck.y = iH/2;
-    puck.dx = 0;
-    puck.dy = 0;
-
-    charges = [];
-    charges.push(new charge(iW - 100, 50, 250));
-    charges.push(new charge(iW - 125, 50, 250));
-    charges.push(new charge(iW - 75, 50, -250));
 }
 
 function initpuck(){
@@ -299,6 +365,20 @@ function initpuck(){
     puck.dy = 0;
 }
 
+function initcharges(){
+    charges = [];
+    charges.push(new charge(iW - 100, 50, 250));
+    charges.push(new charge(iW - 125, 50, 250));
+    charges.push(new charge(iW - 75, 50, -250));
+    charges.push(new charge(iW - 50, 50, -250));
+}
 
-init();
+function init(){
+    initpuck();
+    initcharges();
+}
+
+initcharges();
+initpuck();
+
 animate();
