@@ -12,12 +12,25 @@ h1 {
     text-align: center;
 }
 
+ul {
+    list-style:none;
+    text-align:center;
+    padding: 0;
+}
+
 #container {
     width: 520px;
     margin: auto;
-    padding: 10px;
-    background-color: #DEDEDE;
     display: block;
+}
+
+#top, #bottom{
+    background-color: #DEDEDE;
+    padding: 10px;
+}
+
+#top a{
+    font-size: 18px;
 }
 
 form {
