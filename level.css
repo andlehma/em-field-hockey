@@ -14,8 +14,15 @@ body {
 }
 
 canvas {
-    position:fixed;
     border: 1px solid black;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+}
+
+#flex-container {
+    display:flex;
+    justify-content:center;
 }
 
 p {
@@ -28,4 +35,76 @@ p {
 
 a {
     text-decoration: none;
+}
+
+.button {
+    position:relative;
+    display:inline-block;
+    cursor:pointer;
+    font-family:Arial;
+    font-size:20px;
+    font-weight:bold;
+    padding:10px 20px;
+    border-radius: 4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    transition-duration:0.1s;
+    -webkit-transition-duration:0.1s;
+    -moz-transition-duration:0.1s;
+    box-shadow:1px 1px 1px grey;
+    -webkit-box-shadow:1px 1px 1px grey;
+    -moz-box-shadow:1px 1px 1px grey;
+    user-select:none;
+    -webkit-user-select:none;
+    -moz-user-select:none;
+    margin:3px;
+}
+
+.button:hover {
+    color:#FFFFFF;
+    position:relative;
+    top:-1px;
+    box-shadow:2px 2px 4px grey;
+    -webkit-box-shadow:2px 2px 4px grey;
+    -moz-box-shadow:2px 2px 4px grey;
+}
+
+#start-button {
+    color:#5EABED;
+    border:2px solid #5EABED;
+}
+
+#start-button:hover {
+    background-color:#5EABED;
+    color:#FFFFFF;
+}
+
+#reset-puck-button {
+    color:#F00B42;
+    border:2px solid #F00B42;
+}
+
+#reset-puck-button:hover {
+    background-color:#F00B42;
+    color:#FFFFFF;
+}
+
+#reset-all-button {
+    color:#000000;
+    border:2px solid #000000;
+}
+
+#reset-all-button:hover {
+    background-color:#000000;
+    color:#FFFFFF;
+}
+
+#vectors-button {
+    color:#000000;
+    border:2px solid #000000;
+}
+
+#vectors-button:hover {
+    background-color:#000000;
+    color:#FFFFFF;
 }

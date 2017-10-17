@@ -58,32 +58,6 @@ function mouseDownListener(evt) {
     mouseX = (evt.clientX - bRect.left)*(canvas.width/bRect.width);
     mouseY = (evt.clientY - bRect.top)*(canvas.height/bRect.height);
 
-    //handling for button clicks
-    if (mouseX > startButton.x && mouseX < startButton.x + startButton.w && mouseY > startButton.y && mouseY < startButton.y + startButton.h){
-        initpuck();
-        gamestate = 1;
-        arrows = [];
-    }
-
-    if (mouseX > stopButton.x && mouseX < stopButton.x + stopButton.w && mouseY > stopButton.y && mouseY < stopButton.y + stopButton.h){
-        gamestate = 0;
-        initpuck();
-    }
-
-    if (mouseX > resetButton.x && mouseX < resetButton.x + resetButton.w && mouseY > resetButton.y && mouseY < resetButton.y + resetButton.h){
-        gamestate = 0;
-        arrows = [];
-        init();
-    }
-
-    if (mouseX > arrowsButton.x && mouseX < arrowsButton.x + arrowsButton.w && mouseY > arrowsButton.y && mouseY < arrowsButton.y + arrowsButton.h){
-        if (boolArrows == 1){
-            boolArrows = 0;
-        }else{
-            boolArrows = 1;
-        }
-    }
-
     for (i=0; i < charges.length; i++) {
         if (hitTest(charges[i], mouseX, mouseY)) {
             if (gamestate == 0){
@@ -196,64 +170,6 @@ var pool = {
     }
 };
 
-var startImg = new Image();
-startImg.src = '../images/start.png';
-var startButton = {
-    x: 100,
-    y: iH - 55,
-    w: 100,
-    h: 50,
-
-    draw: function(){
-        ctx.drawImage(startImg, startButton.x, startButton.y);
-    }
-};
-
-var stopImg = new Image();
-stopImg.src = '../images/stop.png';
-var stopButton = {
-    x: 205,
-    y: iH - 55,
-    w: 100,
-    h: 50,
-
-    draw: function(){
-        ctx.drawImage(stopImg, stopButton.x, stopButton.y);
-    }
-};
-
-var resetImg = new Image();
-resetImg.src = '../images/reset.png';
-var resetButton = {
-    x: 310,
-    y: iH - 55,
-    w: 100,
-    h: 50,
-
-    draw: function(){
-        ctx.drawImage(resetImg, resetButton.x, resetButton.y);
-    }
-};
-
-var arrowsDarkImg = new Image();
-arrowsDarkImg.src = '../images/arrows-dark.png';
-var arrowsLightImg = new Image();
-arrowsLightImg.src = '../images/arrows-light.png';
-var arrowsButton = {
-    x: 415,
-    y: iH - 55,
-    w: 100,
-    h: 50,
-
-    draw: function(){
-        if (boolArrows == 1){
-            ctx.drawImage(arrowsDarkImg, arrowsButton.x, arrowsButton.y);
-        }else{
-            ctx.drawImage(arrowsLightImg, arrowsButton.x, arrowsButton.y);
-        }
-    }
-};
-
 function wall(x, y, width, height){
     this.x = x;
     this.y = y;
@@ -352,10 +268,6 @@ function animate() {
     puck.update();
     goal.draw();
     pool.draw();
-    startButton.draw();
-    stopButton.draw();
-    resetButton.draw();
-    arrowsButton.draw();
 
     //win condition
     if (puck.x > goal.x && puck.x < goal.x + goal.w && puck.y > goal.y && puck.y < goal.y + goal.h){
@@ -368,6 +280,8 @@ function animate() {
         ctx.strokeText("SUCCESS", iW/2, iH/2);
         ctx.fillText("SUCCESS", iW/2, iH/2);
     }
+
+
 }
 
 function init(){
@@ -377,3 +291,43 @@ function init(){
 
 init();
 animate();
+
+//button functions
+function startButton(){
+    initpuck();
+    gamestate = 1;
+    arrows = [];
+}
+
+function resetPuckButton(){
+    gamestate = 0;
+    initpuck();
+}
+
+function resetAllButton(){
+    gamestate = 0;
+    arrows = [];
+    init();
+}
+
+function vectorsButton(){
+    if (boolArrows == 1){
+        boolArrows = 0;
+    }else{
+        boolArrows = 1;
+    }
+}
+$(document).ready(function(){
+    $('#start-button').click(function(){
+        startButton();
+    });
+    $('#reset-puck-button').click(function(){
+        resetPuckButton();
+    });
+    $('#reset-all-button').click(function(){
+        resetAllButton();
+    });
+    $('#vectors-button').click(function(){
+        vectorsButton();
+    });
+});
